@@ -1,11 +1,11 @@
 import React, { memo } from 'react';
-import { useState } from 'react';
 
-const Categories = memo(function Categories({ items, onClickItem }) {
-  const [activeItem, setActiveItem] = useState(null);
-
-  const onSelectItem = (index) => {
-    setActiveItem(index);
+const Categories = memo(function Categories({
+  items,
+  onClickItem,
+  activeCategory,
+}) {
+  const onSelectCategory = (index) => {
     onClickItem(index);
   };
 
@@ -13,16 +13,16 @@ const Categories = memo(function Categories({ items, onClickItem }) {
     <div className="categories">
       <ul>
         <li
-          className={activeItem === null ? 'active' : ''}
-          onClick={() => setActiveItem(null)}
+          className={activeCategory === null ? 'active' : ''}
+          onClick={() => onSelectCategory(null)}
         >
           Все
         </li>
         {items &&
           items.map((name, index) => (
             <li
-              className={activeItem === index ? 'active' : ''}
-              onClick={() => onSelectItem(index)}
+              className={activeCategory === index ? 'active' : ''}
+              onClick={() => onSelectCategory(index)}
               key={`name_${index}`}
             >
               {name}
@@ -32,5 +32,6 @@ const Categories = memo(function Categories({ items, onClickItem }) {
     </div>
   );
 });
+Categories.defaultProps = { items: [], activeCategory: null };
 
 export default Categories;

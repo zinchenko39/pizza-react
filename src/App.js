@@ -1,22 +1,9 @@
-import React, { useEffect } from "react";
-import axios from "axios";
-// import store from './redux/store.js';
-import { useDispatch } from "react-redux";
-import { setPizzas } from './redux/actions/pizzas.js'
-
+import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { Header } from './components';
 import { Home, Cart } from './pages'
 
 function App() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    axios.get('http://localhost:3001/db.json').then(({data}) => {
-      dispatch(setPizzas(data.pizzas));
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[])
 
   return (
     <div className="wrapper">
