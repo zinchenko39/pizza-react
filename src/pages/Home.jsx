@@ -21,6 +21,7 @@ const sortNames = [
 
 function Home() {
   const items = useSelector(({ pizzas }) => pizzas.items);
+  const cartItems = useSelector(({ cart }) => cart.items);
   const isLoaded = useSelector(({ pizzas }) => pizzas.isLoaded);
   const { category, sortBy } = useSelector(({ filters }) => filters);
 
@@ -58,13 +59,18 @@ function Home() {
           onClickSortType={onSelectSortType}
         />
       </div>
-      <h2 className="content__title">Все пиццы</h2>
+      <h2 className="content__title">
+        {category === null ? 'Все пиццы' : categoryNames[category]}
+      </h2>
       <div className="content__items">
         {isLoaded
           ? items.map((obj) => (
               <PizzaBlock
                 onClickAddPizza={handleAddPizza}
                 key={obj.id}
+                cartCount={
+                  cartItems[obj.id] ? cartItems[obj.id].items.length : 0
+                }
                 {...obj}
               />
             ))

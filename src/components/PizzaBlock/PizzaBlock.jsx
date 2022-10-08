@@ -10,6 +10,7 @@ function PizzaBlock({
   types,
   sizes,
   onClickAddPizza,
+  cartCount,
 }) {
   const [activeType, setActiveType] = React.useState(types[0]);
   const [activeSize, setActiveSize] = React.useState(0);
@@ -86,7 +87,7 @@ function PizzaBlock({
             />
           </svg>
           <span>Добавить</span>
-          <i>2</i>
+          <i>{cartCount}</i>
         </Button>
       </div>
     </div>
