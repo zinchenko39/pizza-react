@@ -1,42 +1,119 @@
-import produce from 'immer';
-import { reduce, map } from 'lodash';
-
-import { Types } from '../actions/cart.js';
-
-const initState = {
+const initialState = {
   items: {},
   totalPrice: 0,
-  itemsCount: 0,
+  totalCount: 0,
 };
 
-export default (state = initState, action) => {
-  return produce(state, draft => {
-    switch (action.type) {
-      case Types.ADD_TO_CART:
-        if (!draft.items[action.payload.id]) {
-          draft.items[action.payload.id] = [];
-        }
-        draft.items[action.payload.id].push(action.payload);
-        break;
-      case Types.PLUS_ITEM:
-        draft.items[action.payload].push(draft.items[action.payload][0]);
-        break;
-      case Types.MINUS_ITEM:
-        if (draft.items[action.payload].length > 1) {
-          draft.items[action.payload].shift();
-        }
-        break;
-      case Types.REMOVE_ITEMS_BY_ID:
-        delete draft.items[action.payload];
-        break;
-      case Types.CLEAR_ITEMS:
-        draft.items = {};
-        break;
-      default:
+const getTotalPrice = (arr) => arr.reduce((sum, obj) => obj.price + sum, 0);
+
+const _get = (obj, path) => {
+  const [firstKey, ...keys] = path.split('.');
+  return keys.reduce((val, key) => {
+    return val[key];
+  }, obj[firstKey]);
+};
+
+const getTotalSum = (obj, path) => {
+  return Object.values(obj).reduce((sum, obj) => {
+    const value = _get(obj, path);
+    return sum + value;
+  }, 0);
+};
+
+const cart = (state = initialState, action) => {
+  switch (action.type) {
+    case 'ADD_PIZZA_CART': {
+      const currentPizzaItems = !state.items[action.payload.id]
+        ? [action.payload]
+        : [...state.items[action.payload.id].items, action.payload];
+
+      const newItems = {
+        ...state.items,
+        [action.payload.id]: {
+          items: currentPizzaItems,
+          totalPrice: getTotalPrice(currentPizzaItems),
+        },
+      };
+
+      const totalCount = getTotalSum(newItems, 'items.length');
+      const totalPrice = getTotalSum(newItems, 'totalPrice');
+
+      return {
+        ...state,
+        items: newItems,
+        totalCount,
+        totalPrice,
+      };
     }
 
-    const result = reduce(map(draft.items), (prev, cur) => prev.concat(cur), []);
-    draft.totalPrice = result.reduce((total, obj) => obj.price + total, 0);
-    draft.itemsCount = result.length;
-  });
+    case 'REMOVE_CART_ITEM': {
+      const newItems = {
+        ...state.items,
+      };
+      const currentTotalPrice = newItems[action.payload].totalPrice;
+      const currentTotalCount = newItems[action.payload].items.length;
+      delete newItems[action.payload];
+      return {
+        ...state,
+        items: newItems,
+        totalPrice: state.totalPrice - currentTotalPrice,
+        totalCount: state.totalCount - currentTotalCount,
+      };
+    }
+
+    case 'PLUS_CART_ITEM': {
+      const newObjItems = [
+        ...state.items[action.payload].items,
+        state.items[action.payload].items[0],
+      ];
+      const newItems = {
+        ...state.items,
+        [action.payload]: {
+          items: newObjItems,
+          totalPrice: getTotalPrice(newObjItems),
+        },
+      };
+
+      const totalCount = getTotalSum(newItems, 'items.length');
+      const totalPrice = getTotalSum(newItems, 'totalPrice');
+
+      return {
+        ...state,
+        items: newItems,
+        totalCount,
+        totalPrice,
+      };
+    }
+
+    case 'MINUS_CART_ITEM': {
+      const oldItems = state.items[action.payload].items;
+      const newObjItems =
+        oldItems.length > 1 ? state.items[action.payload].items.slice(1) : oldItems;
+      const newItems = {
+        ...state.items,
+        [action.payload]: {
+          items: newObjItems,
+          totalPrice: getTotalPrice(newObjItems),
+        },
+      };
+
+      const totalCount = getTotalSum(newItems, 'items.length');
+      const totalPrice = getTotalSum(newItems, 'totalPrice');
+
+      return {
+        ...state,
+        items: newItems,
+        totalCount,
+        totalPrice,
+      };
+    }
+
+    case 'CLEAR_CART':
+      return { totalPrice: 0, totalCount: 0, items: {} };
+
+    default:
+      return state;
+  }
 };
+
+export default cart;
