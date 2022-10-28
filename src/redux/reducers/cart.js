@@ -1,36 +1,42 @@
-const initialState = {
-    items: {},
-    totalPrice: 0,
-    itemsCount: 0
-}
+import produce from 'immer';
+import { reduce, map } from 'lodash';
 
-const getTotalPrice = arr => arr.reduce((sum, obj) => obj.price + sum, 0);
+import { Types } from '../actions/cart.js';
 
-const cart = (state = initialState, action) => {
-    switch(action.type) {
-        case 'ADD_PIZZA_CART':
-            const currentPizzaItems = !state.items[action.payload.id] 
-            ? [action.payload]
-            : [...state.items[action.payload.id].items, action.payload];
+const initState = {
+  items: {},
+  totalPrice: 0,
+  itemsCount: 0,
+};
 
-            const newItems = {
-                ...state.items,
-                    [action.payload.id] : {
-                        items: currentPizzaItems,
-                        totalPrice: getTotalPrice(currentPizzaItems)
-                    }
-            }
-            const items = Object.values(newItems).map(obj => obj.items);
-            const allPizzas = [].concat.apply([], items);
-            const totalPrice = getTotalPrice(allPizzas);
-            return {
-                ...state, 
-                items: newItems,
-                itemsCount: allPizzas.length,
-                totalPrice: totalPrice
-            }
-        default: return state;
+export default (state = initState, action) => {
+  return produce(state, draft => {
+    switch (action.type) {
+      case Types.ADD_TO_CART:
+        if (!draft.items[action.payload.id]) {
+          draft.items[action.payload.id] = [];
+        }
+        draft.items[action.payload.id].push(action.payload);
+        break;
+      case Types.PLUS_ITEM:
+        draft.items[action.payload].push(draft.items[action.payload][0]);
+        break;
+      case Types.MINUS_ITEM:
+        if (draft.items[action.payload].length > 1) {
+          draft.items[action.payload].shift();
+        }
+        break;
+      case Types.REMOVE_ITEMS_BY_ID:
+        delete draft.items[action.payload];
+        break;
+      case Types.CLEAR_ITEMS:
+        draft.items = {};
+        break;
+      default:
     }
-}
 
-export default cart;
+    const result = reduce(map(draft.items), (prev, cur) => prev.concat(cur), []);
+    draft.totalPrice = result.reduce((total, obj) => obj.price + total, 0);
+    draft.itemsCount = result.length;
+  });
+};
