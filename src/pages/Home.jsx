@@ -2,9 +2,10 @@ import React, { useCallback, useEffect } from 'react';
 import { Categories, SortPopUp, PizzaBlock } from '../components';
 import { useSelector, useDispatch } from 'react-redux';
 import { setCategory, setSortBy } from '../redux//actions/filters.js';
-import { fetchPizzas } from '../redux/actions/pizzas.js';
+// import { fetchPizzas } from '../redux/actions/pizzas.js';
 import { addPizzaToCart } from '../redux/actions/cart.js';
 import PizzaLoadingBlock from '../components/PizzaBlock/PizzaLoadingBlock.jsx';
+import { dataPizzas } from '../data';
 
 const categoryNames = [
   'Мясные',
@@ -26,9 +27,12 @@ function Home() {
   const { category, sortBy } = useSelector(({ filters }) => filters);
 
   const dispatch = useDispatch();
-
   useEffect(() => {
-    dispatch(fetchPizzas(sortBy, category));
+    dispatch({
+      type: 'SET_PIZZAS',
+      payload: dataPizzas,
+    });
+    // dispatch(fetchPizzas(sortBy, category));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, sortBy]);
 
